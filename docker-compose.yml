@@ -1,0 +1,57 @@
+version: '2'
+
+# We use cassandra 2 for the time beeing until spring-data-cassandra gets support for version 3
+# https://github.com/spring-projects/spring-data-cassandra/pull/48
+
+# Create named volumes for all cassandra nodes
+volumes:
+  cassandra-seed:
+    driver: local
+  cassandra-1:
+    driver: local
+  cassandra-2:
+    driver: local
+
+services:
+  # Cassandra Cluster
+  cassandra-seed:
+    container_name: messaging-cassandra-seed
+    image: cassandra:2
+    environment:
+      CASSANDRA_CLUSTER_NAME: radleycluster
+      CASSANDRA_CONTACT_POINT: cassandra-seed
+    volumes:
+      - cassandra-seed:/var/lib/cassandra
+    ports:
+      - 7000:7000
+      - 7001:7001
+      - 7199:7199
+      - 9042:9042
+      - 9160:9160
+    mem_limit: 1g
+
+  cassandra-1:
+    container_name: messaging-cassandra-1
+    image: cassandra:2
+    links:
+      - cassandra-seed:seed
+    environment:
+      CASSANDRA_CLUSTER_NAME: radleycluster
+      CASSANDRA_SEEDS: seed
+    volumes:
+      - cassandra-1:/var/lib/cassandra
+    mem_limit: 1g
+
+# Start another node to have a redundant cluster.
+# My computer isn't strong enough to have three nodes running. since I couldn't get it working with less than 1g of ram
+#  cassandra-2:
+#    container_name: messaging-cassandra-2
+#    image: cassandra
+#    links:
+#      - cassandra-seed:seed
+#    environment:
+#      CASSANDRA_CLUSTER_NAME: radleycluster
+#      CASSANDRA_SEEDS: seed
+#    volumes:
+#      - cassandra-2:/var/lib/cassandra
+#    mem_limit: 1g

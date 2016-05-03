@@ -1,0 +1,3 @@
+#!/bin/sh
+
+docker run --net=container:messaging-cassandra-seed -it --rm cassandra:2 cqlsh
